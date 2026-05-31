@@ -4,9 +4,9 @@ Task::Task()
 {
 }
 
-Task::Task(const string& title, const string& description, const Date& deadline,
+Task::Task(const string& title, const string& description,
            Priority priority, Status status)
-    : title(title), description(description), deadline(deadline),
+    : title(title), description(description),
       priority(priority), status(status)
 {
 }
@@ -45,11 +45,6 @@ const string& Task::getTitle() const
 const string& Task::getDescription() const
 {
     return description;
-}
-
-const Date& Task::getDeadline() const
-{
-    return deadline;
 }
 
 Priority Task::getPriority() const
