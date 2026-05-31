@@ -1,7 +1,8 @@
 #include <iostream>
+#include "defines.h"
 
 int main()
 {
-    std::cout << "OOP-Project\n";
+    cout << "OOP-Project\n";
     return 0;
 }
