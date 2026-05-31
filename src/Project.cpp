@@ -19,6 +19,70 @@ Project::~Project()
 void Project::addTask(const Task& task)
 {
     tasks.push_back(task);
+    tasks.back().id = nextId++;
+}
+
+bool Project::deleteTask(int id)
+{
+    for (auto it = tasks.begin(); it != tasks.end(); ++it)
+    {
+        if (it->getId() == id)
+        {
+            tasks.erase(it);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+Task* Project::findTask(int id)
+{
+    for (Task& task : tasks)
+    {
+        if (task.getId() == id)
+        {
+            return &task;
+        }
+    }
+
+    return nullptr;
+}
+
+bool Project::startTask(int id)
+{
+    Task* task = findTask(id);
+    return task != nullptr && task->start();
+}
+
+bool Project::finishTask(int id)
+{
+    Task* task = findTask(id);
+    return task != nullptr && task->finish();
+}
+
+bool Project::cancelTask(int id)
+{
+    Task* task = findTask(id);
+    return task != nullptr && task->cancel();
+}
+
+bool Project::omitTask(int id)
+{
+    Task* task = findTask(id);
+    return task != nullptr && task->omit();
+}
+
+bool Project::increaseTaskPriority(int id)
+{
+    Task* task = findTask(id);
+    return task != nullptr && task->increasePriority();
+}
+
+bool Project::decreaseTaskPriority(int id)
+{
+    Task* task = findTask(id);
+    return task != nullptr && task->decreasePriority();
 }
 
 bool Project::cancel()
@@ -131,7 +195,7 @@ Status Project::getStatus() const
     return Status::InProgress;
 }
 
-const vector<Task>& Project::getTasks() const
+const list<Task>& Project::getTasks() const
 {
     return tasks;
 }

@@ -3,7 +3,7 @@
 #include "defines.h"
 #include "Task.h"
 
-#include <vector>
+#include <list>
 
 class Project
 {
@@ -14,21 +14,32 @@ public:
     ~Project();
 
     void addTask(const Task& task);
+    bool deleteTask(int id);
     bool cancel();
     bool increasePriority();
     bool decreasePriority();
+
+    bool startTask(int id);
+    bool finishTask(int id);
+    bool cancelTask(int id);
+    bool omitTask(int id);
+    bool increaseTaskPriority(int id);
+    bool decreaseTaskPriority(int id);
 
     const string& getName() const;
     const string& getDescription() const;
     const Date& getDeadline() const;
     Priority getPriority() const;
     Status getStatus() const;
-    const vector<Task>& getTasks() const;
+    const list<Task>& getTasks() const;
 
 private:
+    Task* findTask(int id);
+
     const string name;
     const string description;
     const Date deadline;
     Priority priority;
-    vector<Task> tasks;
+    list<Task> tasks;
+    int nextId = 1;
 };

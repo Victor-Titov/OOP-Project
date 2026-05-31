@@ -4,6 +4,8 @@
 
 class Task
 {
+    friend class Project;
+
 public:
     Task();
     Task(const string& title, const string& description,
@@ -17,12 +19,14 @@ public:
     bool increasePriority();
     bool decreasePriority();
 
+    int getId() const;
     const string& getTitle() const;
     const string& getDescription() const;
     Priority getPriority() const;
     Status getStatus() const;
 
 private:
+    int id = 0;
     const string title;
     const string description;
     Priority priority;

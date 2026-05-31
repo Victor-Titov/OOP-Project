@@ -82,6 +82,11 @@ bool Task::decreasePriority()
     return true;
 }
 
+int Task::getId() const
+{
+    return id;
+}
+
 const string& Task::getTitle() const
 {
     return title;
