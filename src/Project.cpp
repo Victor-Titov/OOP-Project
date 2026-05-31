@@ -305,7 +305,8 @@ void Project::printHeader(ostream& out) const
     out << '[' << id << "] " << name
         << " | priority: " << priorityToString(priority)
         << " | deadline: " << deadline.day << '.'
-        << deadline.month << '.' << deadline.year;
+        << deadline.month << '.' << deadline.year
+        << " | status: " << statusToString(getStatus());
 }
 
 void Project::printPretty(ostream& out) const
