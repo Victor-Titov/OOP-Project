@@ -39,7 +39,8 @@ Project::Project(const string& name, const string& description,
 }
 
 Project::Project(istream& in)
-    : name(readLine(in)),
+    : id(readInt(in)),
+      name(readLine(in)),
       description(readLine(in)),
       deadline(readDate(in)),
       priority(static_cast<Priority>(readInt(in))),
@@ -181,6 +182,11 @@ bool Project::saveToFile(const string& fileName) const
     return out.good();
 }
 
+int Project::getId() const
+{
+    return id;
+}
+
 const string& Project::getName() const
 {
     return name;
@@ -261,19 +267,49 @@ const list<Task>& Project::getTasks() const
 
 ostream& operator<<(ostream& out, const Project& project)
 {
-    out << project.name << '\n'
-        << project.description << '\n'
-        << project.deadline.day << ' '
-        << project.deadline.month << ' '
-        << project.deadline.year << '\n'
-        << static_cast<int>(project.priority) << '\n'
-        << project.tasks.size() << '\n'
+    project.write(out);
+    return out;
+}
+
+void Project::write(ostream& out) const
+{
+    out << static_cast<int>(ProjectType::Base) << '\n';
+    writeBody(out);
+}
+
+void Project::writeBody(ostream& out) const
+{
+    out << id << '\n'
+        << name << '\n'
+        << description << '\n'
+        << deadline.day << ' '
+        << deadline.month << ' '
+        << deadline.year << '\n'
+        << static_cast<int>(priority) << '\n'
+        << tasks.size() << '\n'
         << '\n';   // blank line after the project header
 
-    for (const Task& task : project.tasks)
+    for (const Task& task : tasks)
     {
         out << task << '\n';   // blank line after each task
     }
+}
 
+Project::Pretty Project::pretty() const
+{
+    return Pretty{*this};
+}
+
+void Project::printPretty(ostream& out) const
+{
+    out << '[' << id << "] " << name
+        << " | priority: " << priorityToString(priority)
+        << " | deadline: " << deadline.day << '.'
+        << deadline.month << '.' << deadline.year;
+}
+
+ostream& operator<<(ostream& out, const Project::Pretty& pretty)
+{
+    pretty.project.printPretty(out);
     return out;
 }

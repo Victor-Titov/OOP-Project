@@ -43,4 +43,5 @@ public:
 
 private:
     vector<Project*> projects;
+    int nextId = 1;
 };

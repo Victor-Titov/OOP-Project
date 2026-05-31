@@ -46,3 +46,23 @@ enum class Status
     Canceled,
     Omitted
 };
+
+// Written as the first line of a saved project so the loader knows which
+// concrete class to build.
+enum class ProjectType
+{
+    Base = 0,
+    School = 1
+};
+
+inline string priorityToString(Priority priority)
+{
+    switch (priority)
+    {
+    case Priority::Low:    return "Low";
+    case Priority::Medium: return "Medium";
+    case Priority::High:   return "High";
+    }
+
+    return "Unknown";
+}

@@ -1,4 +1,5 @@
 #include "Manager.h"
+#include "SchoolProject.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -32,16 +33,20 @@ static string sanitize(const string& name)
     return result;
 }
 
-static string priorityToString(Priority priority)
+// Reads the leading type tag and builds the matching project subclass.
+// The constructor then reads the rest of that project's data.
+static Project* readProject(istream& in)
 {
-    switch (priority)
-    {
-    case Priority::Low:    return "Low";
-    case Priority::Medium: return "Medium";
-    case Priority::High:   return "High";
-    }
+    int type = readInt(in);
 
-    return "Unknown";
+    switch (type)
+    {
+    case static_cast<int>(ProjectType::School):
+        return new SchoolProject(in);
+    case static_cast<int>(ProjectType::Base):
+    default:
+        return new Project(in);
+    }
 }
 
 // True when deadline a falls strictly before deadline b.
@@ -58,18 +63,13 @@ static bool earlier(const Date& a, const Date& b)
     return a.day < b.day;
 }
 
-// Prints one readable line per project, in the order given.
+// Prints one readable line per project, in the order given, using the
+// project's own pretty stream output.
 static void printOrdered(ostream& out, const vector<const Project*>& ordered)
 {
     for (const Project* project : ordered)
     {
-        const Date& deadline = project->getDeadline();
-
-        out << project->getName()
-            << " | priority: " << priorityToString(project->getPriority())
-            << " | deadline: " << deadline.day << '.'
-            << deadline.month << '.' << deadline.year
-            << '\n';
+        out << project->pretty() << '\n';
     }
 }
 
@@ -116,6 +116,7 @@ Manager::~Manager()
 
 void Manager::addProject(Project* project)
 {
+    project->id = nextId++;
     projects.push_back(project);
 }
 
@@ -139,7 +140,16 @@ int Manager::loadFromFolder(const string& folder)
             continue;
         }
 
-        projects.push_back(new Project(in));
+        Project* project = readProject(in);
+        projects.push_back(project);
+
+        // Loaded projects keep their stored id; advance past it so newly
+        // added projects don't reuse an existing id.
+        if (project->getId() >= nextId)
+        {
+            nextId = project->getId() + 1;
+        }
+
         ++loaded;
     }
 
