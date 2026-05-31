@@ -18,6 +18,15 @@ public:
     // Takes ownership of the given project.
     void addProject(Project* project);
 
+    // Loads every project file in the given folder, appending the loaded
+    // projects to the current list. Returns how many were loaded.
+    int loadFromFolder(const string& folder = "data");
+
+    // Writes every project to the given folder. All files already in the
+    // folder are removed first so it mirrors the current projects exactly.
+    // Returns true if every project was written successfully.
+    bool saveToFolder(const string& folder = "data") const;
+
     // Lists every project ordered by priority (High first).
     void listByPriority(ostream& out = cout) const;
     // Lists every project ordered by deadline (soonest first).

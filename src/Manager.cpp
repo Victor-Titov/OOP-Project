@@ -1,6 +1,36 @@
 #include "Manager.h"
 
 #include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <set>
+#include <cctype>
+
+// Turns a project name into a safe file name stem (alphanumerics kept,
+// everything else replaced with '_').
+static string sanitize(const string& name)
+{
+    string result;
+
+    for (char c : name)
+    {
+        if (isalnum(static_cast<unsigned char>(c)))
+        {
+            result += c;
+        }
+        else
+        {
+            result += '_';
+        }
+    }
+
+    if (result.empty())
+    {
+        result = "project";
+    }
+
+    return result;
+}
 
 static string priorityToString(Priority priority)
 {
@@ -87,6 +117,82 @@ Manager::~Manager()
 void Manager::addProject(Project* project)
 {
     projects.push_back(project);
+}
+
+int Manager::loadFromFolder(const string& folder)
+{
+    filesystem::path dir = folder;
+
+    error_code ec;
+    int loaded = 0;
+
+    for (const auto& entry : filesystem::directory_iterator(dir, ec))
+    {
+        if (!entry.is_regular_file())
+        {
+            continue;
+        }
+
+        ifstream in(entry.path());
+        if (!in)
+        {
+            continue;
+        }
+
+        projects.push_back(new Project(in));
+        ++loaded;
+    }
+
+    return loaded;
+}
+
+bool Manager::saveToFolder(const string& folder) const
+{
+    filesystem::path dir = folder;
+
+    error_code ec;
+    filesystem::create_directories(dir, ec);
+
+    // Remove the existing files so the folder mirrors the current projects.
+    for (const auto& entry : filesystem::directory_iterator(dir, ec))
+    {
+        if (entry.is_regular_file())
+        {
+            filesystem::remove(entry.path(), ec);
+        }
+    }
+
+    bool ok = true;
+    set<string> usedNames;
+
+    for (const Project* project : projects)
+    {
+        string stem = sanitize(project->getName());
+        string fileName = stem + ".txt";
+
+        // Keep names unique so projects sharing a name don't overwrite.
+        int suffix = 1;
+        while (usedNames.count(fileName) != 0)
+        {
+            fileName = stem + "_" + to_string(++suffix) + ".txt";
+        }
+        usedNames.insert(fileName);
+
+        ofstream out(dir / fileName);
+        if (!out)
+        {
+            ok = false;
+            continue;
+        }
+
+        out << *project;
+        if (!out.good())
+        {
+            ok = false;
+        }
+    }
+
+    return ok;
 }
 
 void Manager::listByPriority(ostream& out) const
