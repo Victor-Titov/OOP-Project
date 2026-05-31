@@ -7,13 +7,15 @@ class Task
 public:
     Task();
     Task(const string& title, const string& description,
-         Priority priority, Status status);
+         const Priority& priority, Status status);
     ~Task();
 
     bool start();
     bool finish();
     bool cancel();
     bool omit();
+    bool increasePriority();
+    bool decreasePriority();
 
     const string& getTitle() const;
     const string& getDescription() const;
@@ -21,8 +23,8 @@ public:
     Status getStatus() const;
 
 private:
-    string title;
-    string description;
+    const string title;
+    const string description;
     Priority priority;
     Status status;
 };

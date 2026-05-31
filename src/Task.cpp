@@ -1,11 +1,12 @@
 #include "Task.h"
 
 Task::Task()
+    : priority(Priority::Low), status(Status::NotStarted)
 {
 }
 
 Task::Task(const string& title, const string& description,
-           Priority priority, Status status)
+           const Priority& priority, Status status)
     : title(title), description(description),
       priority(priority), status(status)
 {
@@ -56,6 +57,28 @@ bool Task::omit()
     }
 
     status = Status::Omitted;
+    return true;
+}
+
+bool Task::increasePriority()
+{
+    if (priority == Priority::High)
+    {
+        return false;
+    }
+
+    priority = static_cast<Priority>(static_cast<int>(priority) + 1);
+    return true;
+}
+
+bool Task::decreasePriority()
+{
+    if (priority == Priority::Low)
+    {
+        return false;
+    }
+
+    priority = static_cast<Priority>(static_cast<int>(priority) - 1);
     return true;
 }
 

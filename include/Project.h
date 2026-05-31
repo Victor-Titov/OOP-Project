@@ -10,21 +10,25 @@ class Project
 public:
     Project();
     Project(const string& name, const string& description,
-            Priority priority);
+            const Date& deadline, const Priority& priority);
     ~Project();
 
     void addTask(const Task& task);
     bool cancel();
+    bool increasePriority();
+    bool decreasePriority();
 
     const string& getName() const;
     const string& getDescription() const;
+    const Date& getDeadline() const;
     Priority getPriority() const;
     Status getStatus() const;
     const vector<Task>& getTasks() const;
 
 private:
-    string name;
-    string description;
+    const string name;
+    const string description;
+    const Date deadline;
     Priority priority;
     vector<Task> tasks;
 };

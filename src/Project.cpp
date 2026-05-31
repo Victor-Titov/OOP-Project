@@ -1,12 +1,13 @@
 #include "Project.h"
 
 Project::Project()
+    : deadline{}, priority(Priority::Low)
 {
 }
 
 Project::Project(const string& name, const string& description,
-                 Priority priority)
-    : name(name), description(description),
+                 const Date& deadline, const Priority& priority)
+    : name(name), description(description), deadline(deadline),
       priority(priority)
 {
 }
@@ -35,6 +36,28 @@ bool Project::cancel()
     return true;
 }
 
+bool Project::increasePriority()
+{
+    if (priority == Priority::High)
+    {
+        return false;
+    }
+
+    priority = static_cast<Priority>(static_cast<int>(priority) + 1);
+    return true;
+}
+
+bool Project::decreasePriority()
+{
+    if (priority == Priority::Low)
+    {
+        return false;
+    }
+
+    priority = static_cast<Priority>(static_cast<int>(priority) - 1);
+    return true;
+}
+
 const string& Project::getName() const
 {
     return name;
@@ -43,6 +66,11 @@ const string& Project::getName() const
 const string& Project::getDescription() const
 {
     return description;
+}
+
+const Date& Project::getDeadline() const
+{
+    return deadline;
 }
 
 Priority Project::getPriority() const
@@ -59,6 +87,7 @@ Status Project::getStatus() const
 
     bool allDone = true;
     bool allNotStarted = true;
+    bool allOmitted = true;
     bool hasCanceled = false;
 
     for (const Task& task : tasks)
@@ -72,12 +101,20 @@ Status Project::getStatus() const
         {
             allNotStarted = false;
         }
+        if (task.getStatus() != Status::Omitted)
+        {
+            allOmitted = false;
+        }
         if (task.getStatus() == Status::Canceled)
         {
             hasCanceled = true;
         }
     }
 
+    if (allOmitted)
+    {
+        return Status::Canceled;
+    }
     if (allDone)
     {
         return Status::Completed;
