@@ -17,8 +17,8 @@ public:
 
     const string& getSchoolClass() const;
 
-    // Appends the school class to the base project's pretty output.
-    void printPretty(ostream& out) const override;
+    // Appends the school class to the base project's header line.
+    void printHeader(ostream& out) const override;
 
     // Writes the school type tag, the base data, then the school class.
     void write(ostream& out) const override;

@@ -66,3 +66,17 @@ inline string priorityToString(Priority priority)
 
     return "Unknown";
 }
+
+inline string statusToString(Status status)
+{
+    switch (status)
+    {
+    case Status::NotStarted: return "Not started";
+    case Status::InProgress: return "In progress";
+    case Status::Completed:  return "Completed";
+    case Status::Canceled:   return "Canceled";
+    case Status::Omitted:    return "Omitted";
+    }
+
+    return "Unknown";
+}

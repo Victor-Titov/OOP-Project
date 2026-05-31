@@ -57,11 +57,15 @@ public:
     };
     Pretty pretty() const;
 
-    // Writes the human-readable one-line form. Virtual so subclasses can
-    // append their own fields; operator<< for Pretty dispatches through it.
-    virtual void printPretty(ostream& out) const;
+    // Writes the human-readable form: the project header line followed by
+    // its tasks, tabulated below. operator<< for Pretty dispatches here.
+    void printPretty(ostream& out) const;
 
 protected:
+    // Writes the one-line project header. Virtual so subclasses can append
+    // their own fields to the header before the tasks are listed.
+    virtual void printHeader(ostream& out) const;
+
     // Writes the common project fields (id, name, ..., tasks) without a
     // type tag, so subclasses can reuse it inside their own write().
     void writeBody(ostream& out) const;

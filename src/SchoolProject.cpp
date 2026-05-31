@@ -21,9 +21,9 @@ const string& SchoolProject::getSchoolClass() const
     return schoolClass;
 }
 
-void SchoolProject::printPretty(ostream& out) const
+void SchoolProject::printHeader(ostream& out) const
 {
-    Project::printPretty(out);
+    Project::printHeader(out);
     out << " | class: " << schoolClass;
 }
 

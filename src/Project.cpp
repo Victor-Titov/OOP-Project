@@ -300,12 +300,25 @@ Project::Pretty Project::pretty() const
     return Pretty{*this};
 }
 
-void Project::printPretty(ostream& out) const
+void Project::printHeader(ostream& out) const
 {
     out << '[' << id << "] " << name
         << " | priority: " << priorityToString(priority)
         << " | deadline: " << deadline.day << '.'
         << deadline.month << '.' << deadline.year;
+}
+
+void Project::printPretty(ostream& out) const
+{
+    printHeader(out);
+
+    // List the tasks tabulated beneath the project header.
+    for (const Task& task : tasks)
+    {
+        out << "\n\t[" << task.getId() << "] " << task.getTitle()
+            << " | priority: " << priorityToString(task.getPriority())
+            << " | status: " << statusToString(task.getStatus());
+    }
 }
 
 ostream& operator<<(ostream& out, const Project::Pretty& pretty)
