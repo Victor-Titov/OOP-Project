@@ -12,6 +12,15 @@ Task::Task(const string& title, const string& description,
 {
 }
 
+Task::Task(istream& in)
+    : id(readInt(in)),
+      title(readLine(in)),
+      description(readLine(in)),
+      priority(static_cast<Priority>(readInt(in))),
+      status(static_cast<Status>(readInt(in)))
+{
+}
+
 Task::~Task()
 {
 }
@@ -105,4 +114,14 @@ Priority Task::getPriority() const
 Status Task::getStatus() const
 {
     return status;
+}
+
+ostream& operator<<(ostream& out, const Task& task)
+{
+    out << task.id << '\n'
+        << task.title << '\n'
+        << task.description << '\n'
+        << static_cast<int>(task.priority) << '\n'
+        << static_cast<int>(task.status) << '\n';
+    return out;
 }

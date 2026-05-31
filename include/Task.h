@@ -10,6 +10,7 @@ public:
     Task();
     Task(const string& title, const string& description,
          const Priority& priority, Status status);
+    explicit Task(istream& in);
     ~Task();
 
     bool start();
@@ -24,6 +25,8 @@ public:
     const string& getDescription() const;
     Priority getPriority() const;
     Status getStatus() const;
+
+    friend ostream& operator<<(ostream& out, const Task& task);
 
 private:
     int id = 0;

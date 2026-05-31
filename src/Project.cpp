@@ -1,5 +1,31 @@
 #include "Project.h"
 
+#include <fstream>
+#include <filesystem>
+
+static Date readDate(istream& in)
+{
+    Date date{};
+    in >> date.day >> date.month >> date.year;
+    in.ignore(numeric_limits<streamsize>::max(), '\n');
+    return date;
+}
+
+static list<Task> readTasks(istream& in)
+{
+    int count = readInt(in);
+    readLine(in);   // consume the blank line after the project header
+
+    list<Task> tasks;
+    for (int i = 0; i < count; ++i)
+    {
+        tasks.emplace_back(in);
+        readLine(in);   // consume the blank line after each task
+    }
+
+    return tasks;
+}
+
 Project::Project()
     : deadline{}, priority(Priority::Low)
 {
@@ -10,6 +36,22 @@ Project::Project(const string& name, const string& description,
     : name(name), description(description), deadline(deadline),
       priority(priority)
 {
+}
+
+Project::Project(istream& in)
+    : name(readLine(in)),
+      description(readLine(in)),
+      deadline(readDate(in)),
+      priority(static_cast<Priority>(readInt(in))),
+      tasks(readTasks(in))
+{
+    for (const Task& task : tasks)
+    {
+        if (task.getId() >= nextId)
+        {
+            nextId = task.getId() + 1;
+        }
+    }
 }
 
 Project::~Project()
@@ -122,6 +164,23 @@ bool Project::decreasePriority()
     return true;
 }
 
+bool Project::saveToFile(const string& fileName) const
+{
+    filesystem::path dir = "data";
+
+    error_code ec;
+    filesystem::create_directories(dir, ec);
+
+    ofstream out(dir / fileName);
+    if (!out)
+    {
+        return false;
+    }
+
+    out << *this;
+    return out.good();
+}
+
 const string& Project::getName() const
 {
     return name;
@@ -198,4 +257,23 @@ Status Project::getStatus() const
 const list<Task>& Project::getTasks() const
 {
     return tasks;
+}
+
+ostream& operator<<(ostream& out, const Project& project)
+{
+    out << project.name << '\n'
+        << project.description << '\n'
+        << project.deadline.day << ' '
+        << project.deadline.month << ' '
+        << project.deadline.year << '\n'
+        << static_cast<int>(project.priority) << '\n'
+        << project.tasks.size() << '\n'
+        << '\n';   // blank line after the project header
+
+    for (const Task& task : project.tasks)
+    {
+        out << task << '\n';   // blank line after each task
+    }
+
+    return out;
 }
