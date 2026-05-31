@@ -18,6 +18,10 @@ public:
     // Takes ownership of the given project.
     void addProject(Project* project);
 
+    // Deletes the project with the given id, freeing it. Returns true if a
+    // matching project was found and removed.
+    bool deleteProject(int id);
+
     // Loads every project file in the given folder, appending the loaded
     // projects to the current list. Returns how many were loaded.
     int loadFromFolder(const string& folder = "data");

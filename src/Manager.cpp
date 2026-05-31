@@ -120,6 +120,21 @@ void Manager::addProject(Project* project)
     projects.push_back(project);
 }
 
+bool Manager::deleteProject(int id)
+{
+    for (auto it = projects.begin(); it != projects.end(); ++it)
+    {
+        if ((*it)->getId() == id)
+        {
+            delete *it;
+            projects.erase(it);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 int Manager::loadFromFolder(const string& folder)
 {
     filesystem::path dir = folder;

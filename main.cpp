@@ -389,6 +389,49 @@ static void restoreProject(Manager& manager)
     _getch();
 }
 
+static void deleteProject(Manager& manager)
+{
+    const vector<Project*>& projects = manager.getProjects();
+    if (projects.empty())
+    {
+        clearScreen();
+        cout << "There are no projects to delete.\n\n";
+        cout << "Press any key to return...";
+        _getch();
+        return;
+    }
+
+    vector<string> names;
+    for (const Project* project : projects)
+    {
+        names.push_back(project->getName());
+    }
+
+    int index = runMenu("Pick a project to delete:", names);
+    if (index < 0)
+    {
+        return;   // Escape cancels
+    }
+
+    // Capture before deleting, then confirm (deletion cannot be undone).
+    int id = projects[index]->getId();
+    string name = projects[index]->getName();
+
+    int confirm = runMenu("Delete \"" + name + "\"? This cannot be undone.",
+                          {"No", "Yes"});
+    if (confirm != 1)
+    {
+        return;   // No or Escape
+    }
+
+    manager.deleteProject(id);
+
+    clearScreen();
+    cout << "Deleted project: " << name << '\n';
+    cout << "\nPress any key to return...";
+    _getch();
+}
+
 int main()
 {
     Manager manager;
@@ -401,6 +444,7 @@ int main()
         "Edit task",
         "Cancel project",
         "Restore project",
+        "Delete project",
         "Exit"};
 
     bool running = true;
@@ -427,6 +471,9 @@ int main()
             restoreProject(manager);
             break;
         case 6:
+            deleteProject(manager);
+            break;
+        case 7:
             running = false;
             break;
         default:
