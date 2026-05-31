@@ -12,6 +12,8 @@ public:
 
     bool start();
     bool finish();
+    bool cancel();
+    bool omit();
 
     const string& getTitle() const;
     const string& getDescription() const;

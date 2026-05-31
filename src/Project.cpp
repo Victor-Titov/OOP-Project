@@ -20,6 +20,21 @@ void Project::addTask(const Task& task)
     tasks.push_back(task);
 }
 
+bool Project::cancel()
+{
+    if (getStatus() == Status::Completed)
+    {
+        return false;
+    }
+
+    for (Task& task : tasks)
+    {
+        task.cancel();
+    }
+
+    return true;
+}
+
 const string& Project::getName() const
 {
     return name;
@@ -42,24 +57,34 @@ Status Project::getStatus() const
         return Status::NotStarted;
     }
 
-    bool allCompleted = true;
+    bool allDone = true;
     bool allNotStarted = true;
+    bool hasCanceled = false;
 
     for (const Task& task : tasks)
     {
-        if (task.getStatus() != Status::Completed)
+        if (task.getStatus() != Status::Completed &&
+            task.getStatus() != Status::Omitted)
         {
-            allCompleted = false;
+            allDone = false;
         }
         if (task.getStatus() != Status::NotStarted)
         {
             allNotStarted = false;
         }
+        if (task.getStatus() == Status::Canceled)
+        {
+            hasCanceled = true;
+        }
     }
 
-    if (allCompleted)
+    if (allDone)
     {
         return Status::Completed;
+    }
+    if (hasCanceled)
+    {
+        return Status::Canceled;
     }
     if (allNotStarted)
     {

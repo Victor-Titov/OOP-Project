@@ -14,6 +14,7 @@ public:
     ~Project();
 
     void addTask(const Task& task);
+    bool cancel();
 
     const string& getName() const;
     const string& getDescription() const;

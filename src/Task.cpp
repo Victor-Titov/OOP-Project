@@ -37,6 +37,28 @@ bool Task::finish()
     return true;
 }
 
+bool Task::cancel()
+{
+    if (status != Status::NotStarted && status != Status::InProgress)
+    {
+        return false;
+    }
+
+    status = Status::Canceled;
+    return true;
+}
+
+bool Task::omit()
+{
+    if (status != Status::NotStarted && status != Status::InProgress)
+    {
+        return false;
+    }
+
+    status = Status::Omitted;
+    return true;
+}
+
 const string& Task::getTitle() const
 {
     return title;

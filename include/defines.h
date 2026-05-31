@@ -22,5 +22,7 @@ enum class Status
 {
     NotStarted,
     InProgress,
-    Completed
+    Completed,
+    Canceled,
+    Omitted
 };
