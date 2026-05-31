@@ -15,8 +15,8 @@ public:
 
     bool start();
     bool finish();
-    bool cancel();
     bool omit();
+    bool restore();   // un-omit: Omitted -> Not started
     bool increasePriority();
     bool decreasePriority();
 

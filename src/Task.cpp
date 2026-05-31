@@ -47,14 +47,14 @@ bool Task::finish()
     return true;
 }
 
-bool Task::cancel()
+bool Task::restore()
 {
-    if (status != Status::NotStarted && status != Status::InProgress)
+    if (status != Status::Omitted)
     {
         return false;
     }
 
-    status = Status::Canceled;
+    status = Status::NotStarted;
     return true;
 }
 
@@ -71,7 +71,7 @@ bool Task::omit()
 
 bool Task::increasePriority()
 {
-    if (priority == Priority::High)
+    if (status == Status::Completed || priority == Priority::High)
     {
         return false;
     }
@@ -82,7 +82,7 @@ bool Task::increasePriority()
 
 bool Task::decreasePriority()
 {
-    if (priority == Priority::Low)
+    if (status == Status::Completed || priority == Priority::Low)
     {
         return false;
     }

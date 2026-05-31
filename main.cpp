@@ -186,28 +186,34 @@ static void addTask(Manager& manager)
 
 static void editTask(Manager& manager)
 {
-    const vector<Project*>& projects = manager.getProjects();
-    if (projects.empty())
+    // 1. Pick the project (completed and canceled projects are not editable).
+    vector<Project*> editable;
+    vector<string> projectNames;
+    for (Project* project : manager.getProjects())
+    {
+        Status status = project->getStatus();
+        if (status != Status::Completed && status != Status::Canceled)
+        {
+            editable.push_back(project);
+            projectNames.push_back(project->getName());
+        }
+    }
+
+    if (editable.empty())
     {
         clearScreen();
-        cout << "There are no projects.\n\n";
+        cout << "There are no editable projects.\n\n";
         cout << "Press any key to return...";
         _getch();
         return;
     }
 
-    // 1. Pick the project.
-    vector<string> projectNames;
-    for (const Project* project : projects)
-    {
-        projectNames.push_back(project->getName());
-    }
     int projectIndex = runMenu("Pick a project:", projectNames);
     if (projectIndex < 0)
     {
         return;
     }
-    Project* project = projects[projectIndex];
+    Project* project = editable[projectIndex];
 
     // 2. Pick the task (mapping the menu choice back to the task id).
     const list<Task>& tasks = project->getTasks();
@@ -221,36 +227,83 @@ static void editTask(Manager& manager)
     }
 
     vector<string> taskLabels;
-    vector<int> taskIds;
+    vector<const Task*> taskPtrs;
     for (const Task& task : tasks)
     {
         taskLabels.push_back(task.getTitle() + " (" + statusToString(task.getStatus()) + ")");
-        taskIds.push_back(task.getId());
+        taskPtrs.push_back(&task);
     }
     int taskIndex = runMenu("Pick a task:", taskLabels);
     if (taskIndex < 0)
     {
         return;
     }
-    int id = taskIds[taskIndex];
 
-    // 3. Pick what to do (no cancel: cancelling is a whole-project action).
-    int action = runMenu("What do you want to do with the task:",
-        {"Start", "Finish (complete)", "Omit",
-         "Increase priority", "Decrease priority"});
-    if (action < 0)
+    const Task* task = taskPtrs[taskIndex];
+    const int id = task->getId();
+    const Status status = task->getStatus();
+    const Priority prio = task->getPriority();
+
+    // 3. Offer only the actions allowed in the task's current state
+    // (no cancel: cancelling is a whole-project action).
+    enum Action { Start, Finish, Omit, Restore, IncPriority, DecPriority };
+    vector<string> actionLabels;
+    vector<int> actionCodes;
+    auto offer = [&](const string& label, Action code)
+    {
+        actionLabels.push_back(label);
+        actionCodes.push_back(code);
+    };
+
+    if (status == Status::NotStarted)
+    {
+        offer("Start", Start);
+    }
+    if (status == Status::InProgress)
+    {
+        offer("Finish (complete)", Finish);
+    }
+    if (status == Status::NotStarted || status == Status::InProgress)
+    {
+        offer("Omit", Omit);
+    }
+    if (status == Status::Omitted)
+    {
+        offer("Restore (set to not started)", Restore);
+    }
+    if (status != Status::Completed && prio != Priority::High)
+    {
+        offer("Increase priority", IncPriority);
+    }
+    if (status != Status::Completed && prio != Priority::Low)
+    {
+        offer("Decrease priority", DecPriority);
+    }
+
+    if (actionLabels.empty())
+    {
+        clearScreen();
+        cout << "No actions are available for this task in its current state.\n\n";
+        cout << "Press any key to return...";
+        _getch();
+        return;
+    }
+
+    int choice = runMenu("What do you want to do with the task:", actionLabels);
+    if (choice < 0)
     {
         return;
     }
 
     bool ok = false;
-    switch (action)
+    switch (actionCodes[choice])
     {
-    case 0: ok = project->startTask(id); break;
-    case 1: ok = project->finishTask(id); break;
-    case 2: ok = project->omitTask(id); break;
-    case 3: ok = project->increaseTaskPriority(id); break;
-    case 4: ok = project->decreaseTaskPriority(id); break;
+    case Start:       ok = project->startTask(id); break;
+    case Finish:      ok = project->finishTask(id); break;
+    case Omit:        ok = project->omitTask(id); break;
+    case Restore:     ok = project->restoreTask(id); break;
+    case IncPriority: ok = project->increaseTaskPriority(id); break;
+    case DecPriority: ok = project->decreaseTaskPriority(id); break;
     }
 
     clearScreen();
@@ -263,8 +316,20 @@ static void editTask(Manager& manager)
 
 static void cancelProject(Manager& manager)
 {
-    const vector<Project*>& projects = manager.getProjects();
-    if (projects.empty())
+    // Only projects that are neither completed nor already canceled
+    // can be canceled.
+    vector<Project*> eligible;
+    vector<string> names;
+    for (Project* project : manager.getProjects())
+    {
+        if (!project->isCanceled() && project->getStatus() != Status::Completed)
+        {
+            eligible.push_back(project);
+            names.push_back(project->getName());
+        }
+    }
+
+    if (eligible.empty())
     {
         clearScreen();
         cout << "There are no projects to cancel.\n\n";
@@ -273,31 +338,53 @@ static void cancelProject(Manager& manager)
         return;
     }
 
-    // Same project picker as adding a task.
-    vector<string> names;
-    for (const Project* project : projects)
-    {
-        names.push_back(project->getName());
-    }
-
     int index = runMenu("Pick a project to cancel:", names);
     if (index < 0)
     {
         return;   // Escape cancels
     }
 
-    bool cancelled = projects[index]->cancel();
+    eligible[index]->cancel();
 
     clearScreen();
-    if (cancelled)
+    cout << "Cancelled project: " << eligible[index]->getName() << '\n';
+    cout << "\nPress any key to return...";
+    _getch();
+}
+
+static void restoreProject(Manager& manager)
+{
+    // Only canceled projects can be restored.
+    vector<Project*> eligible;
+    vector<string> names;
+    for (Project* project : manager.getProjects())
     {
-        cout << "Cancelled project: " << projects[index]->getName() << '\n';
+        if (project->isCanceled())
+        {
+            eligible.push_back(project);
+            names.push_back(project->getName());
+        }
     }
-    else
+
+    if (eligible.empty())
     {
-        cout << "Could not cancel \"" << projects[index]->getName()
-             << "\" (it is already completed).\n";
+        clearScreen();
+        cout << "There are no canceled projects to restore.\n\n";
+        cout << "Press any key to return...";
+        _getch();
+        return;
     }
+
+    int index = runMenu("Pick a project to restore:", names);
+    if (index < 0)
+    {
+        return;   // Escape cancels
+    }
+
+    eligible[index]->restore();
+
+    clearScreen();
+    cout << "Restored project: " << eligible[index]->getName() << '\n';
     cout << "\nPress any key to return...";
     _getch();
 }
@@ -313,6 +400,7 @@ int main()
         "Add task to project",
         "Edit task",
         "Cancel project",
+        "Restore project",
         "Exit"};
 
     bool running = true;
@@ -336,6 +424,9 @@ int main()
             cancelProject(manager);
             break;
         case 5:
+            restoreProject(manager);
+            break;
+        case 6:
             running = false;
             break;
         default:

@@ -44,6 +44,7 @@ Project::Project(istream& in)
       description(readLine(in)),
       deadline(readDate(in)),
       priority(static_cast<Priority>(readInt(in))),
+      canceled(readInt(in) != 0),
       tasks(readTasks(in))
 {
     for (const Task& task : tasks)
@@ -104,10 +105,10 @@ bool Project::finishTask(int id)
     return task != nullptr && task->finish();
 }
 
-bool Project::cancelTask(int id)
+bool Project::restoreTask(int id)
 {
     Task* task = findTask(id);
-    return task != nullptr && task->cancel();
+    return task != nullptr && task->restore();
 }
 
 bool Project::omitTask(int id)
@@ -130,16 +131,24 @@ bool Project::decreaseTaskPriority(int id)
 
 bool Project::cancel()
 {
-    if (getStatus() == Status::Completed)
+    if (canceled)
     {
-        return false;
+        return false;   // already canceled
     }
 
-    for (Task& task : tasks)
+    // Cancelling marks the project only; the tasks keep their own status.
+    canceled = true;
+    return true;
+}
+
+bool Project::restore()
+{
+    if (!canceled)
     {
-        task.cancel();
+        return false;   // not canceled
     }
 
+    canceled = false;
     return true;
 }
 
@@ -209,15 +218,18 @@ Priority Project::getPriority() const
 
 Status Project::getStatus() const
 {
+    if (canceled)
+    {
+        return Status::Canceled;
+    }
     if (tasks.empty())
     {
         return Status::NotStarted;
     }
 
-    bool allDone = true;
+    bool allDone = true;        // every task completed or omitted
     bool allNotStarted = true;
     bool allOmitted = true;
-    bool hasCanceled = false;
 
     for (const Task& task : tasks)
     {
@@ -234,23 +246,15 @@ Status Project::getStatus() const
         {
             allOmitted = false;
         }
-        if (task.getStatus() == Status::Canceled)
-        {
-            hasCanceled = true;
-        }
     }
 
     if (allOmitted)
     {
-        return Status::Canceled;
+        return Status::Omitted;
     }
     if (allDone)
     {
         return Status::Completed;
-    }
-    if (hasCanceled)
-    {
-        return Status::Canceled;
     }
     if (allNotStarted)
     {
@@ -258,6 +262,11 @@ Status Project::getStatus() const
     }
 
     return Status::InProgress;
+}
+
+bool Project::isCanceled() const
+{
+    return canceled;
 }
 
 const list<Task>& Project::getTasks() const
@@ -286,6 +295,7 @@ void Project::writeBody(ostream& out) const
         << deadline.month << ' '
         << deadline.year << '\n'
         << static_cast<int>(priority) << '\n'
+        << (canceled ? 1 : 0) << '\n'
         << tasks.size() << '\n'
         << '\n';   // blank line after the project header
 
@@ -319,6 +329,11 @@ void Project::printPretty(ostream& out) const
         out << "\n\t[" << task.getId() << "] " << task.getTitle()
             << " | priority: " << priorityToString(task.getPriority())
             << " | status: " << statusToString(task.getStatus());
+
+        if (canceled)
+        {
+            out << "(canceled)";
+        }
     }
 }
 

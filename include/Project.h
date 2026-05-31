@@ -19,13 +19,14 @@ public:
     void addTask(const Task& task);
     bool deleteTask(int id);
     bool cancel();
+    bool restore();   // un-cancel the project
     bool increasePriority();
     bool decreasePriority();
 
     bool startTask(int id);
     bool finishTask(int id);
-    bool cancelTask(int id);
     bool omitTask(int id);
+    bool restoreTask(int id);
     bool increaseTaskPriority(int id);
     bool decreaseTaskPriority(int id);
 
@@ -38,6 +39,7 @@ public:
     const Date& getDeadline() const;
     Priority getPriority() const;
     Status getStatus() const;
+    bool isCanceled() const;
     const list<Task>& getTasks() const;
 
     // Serializes the project (used for saving to files). Delegates to the
@@ -78,6 +80,7 @@ private:
     const string description;
     const Date deadline;
     Priority priority;
+    bool canceled = false;
     list<Task> tasks;
     int nextId = 1;
 };
